@@ -1,8 +1,8 @@
 # Event Driven Architecture
 ## Building an ordering management system using the concept of Event Driven Architectures
 
-### Solutions Architecture
-
+### Solutions Architecture 
+![Architectural Diagram](./images/solutions_architecture.png)
 
 
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes [Lambda Powertools for operational best practices](https://github.com/awslabs/aws-lambda-powertools-python), and the following files and folders.
