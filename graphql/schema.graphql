@@ -1,0 +1,63 @@
+
+type Schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Order @aws_cognito_user_pools{
+    id:ID!
+    userId:String!
+    orderItems:[OrderItem]!
+    restaurantId: String!
+    orderStatus:ORDER_STATUS!
+    createdOn:AWSTimestamp!
+
+}
+type User @aws_cognito_user_pools{
+    id:ID!
+    username:String!
+    email: AWSEmail!
+    createdOn:AWSTimestamp!
+}
+input CreateOrderInput {
+    userId:String!
+    orderItems:[OrderItemInput]!
+    restaurantId: String!
+    orderStatus:ORDER_STATUS!
+}
+input OrderItemInput{
+    name: String!
+    quantity: Int!
+}
+input CreateUserInput{
+    username:String!
+    email:AWSEmail!
+    createdOn:AWSTimestamp!
+}
+
+input UpdateOrderInput {
+    id: String!
+    userId:String!
+    orderItems:[OrderItemInput]!
+    restaurantId: String!
+    orderStatus:ORDER_STATUS!
+    updatedOn:AWSTimestamp!
+}
+
+type Query {
+  orders: [ Order ]!
+  order(id: String!): Order!
+}
+
+type Mutation {
+    createUser(input:CreateUserInput!):User! @aws_cognito_user_pools
+    postOrder(input: CreateOrderInput!): Order! @aws_cognito_user_pools
+    updateOrder(input: UpdateOrderInput!): Order! @aws_cognito_user_pools
+    deleteOrder(id: String!): String @aws_cognito_user_pools
+}
+
+
+enum ORDER_STATUS{
+    SUCCESS
+    FAILED
+}

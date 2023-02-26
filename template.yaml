@@ -29,8 +29,8 @@ Globals: # https://docs.aws.amazon.com/serverless-application-model/latest/devel
                 LOG_LEVEL: INFO
                 POWERTOOLS_LOGGER_SAMPLE_RATE: 0.1
                 POWERTOOLS_LOGGER_LOG_EVENT: true
-                POWERTOOLS_METRICS_NAMESPACE: EventDrivenApplication
-                POWERTOOLS_SERVICE_NAME: eda
+                POWERTOOLS_METRICS_NAMESPACE: EventDrivenSAM
+                POWERTOOLS_SERVICE_NAME: event_drive_sam
 
 Resources:
     HelloWorldFunction:
