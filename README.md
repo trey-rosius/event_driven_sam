@@ -1,4 +1,9 @@
-# event-driven-app
+# Event Driven Architecture
+## Building an ordering management system using the concept of Event Driven Architectures
+
+### Solutions Architecture
+
+
 
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes [Lambda Powertools for operational best practices](https://github.com/awslabs/aws-lambda-powertools-python), and the following files and folders.
 
@@ -134,5 +139,5 @@ We included a `Makefile` for your convenience - You can find all commands you ca
 Pipenv takes care of isolating dev dependencies and app dependencies. As SAM CLI requires a `requirements.txt` file, you'd need to generate one if new app dependencies have been added:
 
 ```bash
-event-driven-app$ pipenv lock -r > hello_world/requirements.txt
+event-driven-app$ pipenv lock -r > event_driven_service/requirements.txt
 ```

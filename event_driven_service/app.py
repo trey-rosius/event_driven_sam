@@ -8,6 +8,7 @@ tracer = Tracer(service="APP")
 metrics = Metrics(namespace="MyApp", service="APP")
 app = ApiGatewayResolver()
 
+# save data to dynamo
 
 @app.get("/hello/<name>")
 @tracer.capture_method

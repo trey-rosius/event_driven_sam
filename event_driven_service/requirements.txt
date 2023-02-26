@@ -3,5 +3,5 @@
 # - aws-lambda-powertools is embedded as a layer (see SAM template)
 # This is always a good practice as your lambda packaged code will be much lighter, and it will be invoked quicker
 
-# boto3
-# aws-lambda-powertools
+boto3
+#aws-lambda-powertools

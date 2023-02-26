@@ -29,15 +29,15 @@ Globals: # https://docs.aws.amazon.com/serverless-application-model/latest/devel
                 LOG_LEVEL: INFO
                 POWERTOOLS_LOGGER_SAMPLE_RATE: 0.1
                 POWERTOOLS_LOGGER_LOG_EVENT: true
-                POWERTOOLS_METRICS_NAMESPACE: MyServerlessApplication
-                POWERTOOLS_SERVICE_NAME: hello
+                POWERTOOLS_METRICS_NAMESPACE: EventDrivenApplication
+                POWERTOOLS_SERVICE_NAME: eda
 
 Resources:
     HelloWorldFunction:
         Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
         Properties:
             Handler: app.lambda_handler
-            CodeUri: hello_world
+            CodeUri: event_driven_service
             Description: Hello World function
             Events:
                 HelloPath:
