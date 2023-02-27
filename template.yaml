@@ -4,16 +4,6 @@ Description: >
     event-driven-app
 
 Globals: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html
-    Api:
-        EndpointConfiguration: REGIONAL
-        TracingEnabled: true
-        Cors:                               # https://awslabs.github.io/aws-lambda-powertools-python/latest/core/event_handler/api_gateway/#cors
-            # AllowOrigin: "'https://example.com'"
-            AllowOrigin: "'*'"  # Dev only
-            AllowHeaders: "'Content-Type,Authorization,X-Amz-Date'"
-            MaxAge: "'300'"
-        BinaryMediaTypes:                   # https://awslabs.github.io/aws-lambda-powertools-python/latest/core/event_handler/api_gateway/#binary-responses
-          - '*~1*'  # converts to */* for any binary type
     Function:
         Timeout: 5
         MemorySize: 256
@@ -33,6 +23,114 @@ Globals: # https://docs.aws.amazon.com/serverless-application-model/latest/devel
                 POWERTOOLS_SERVICE_NAME: event_drive_sam
 
 Resources:
+  ###################
+  # COGNITO POOLS
+  ##################
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}-UserPool
+      AutoVerifiedAttributes:
+        - email
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: event_driven_sam
+      GenerateSecret: false
+      UserPoolId: !Ref CognitoUserPool
+      ExplicitAuthFlows:
+        - ADMIN_NO_SRP_AUTH
+  ###################
+  # FUNCTIONS
+  ##################
+  BabySitterFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    DependsOn:
+      - LambdaLoggingPolicy
+    Properties:
+      CodeUri: event_driven_service/
+      Handler: app.lambda_handler
+      Role: !GetAtt AddBabysitterRole.Arn
+      Runtime: python3.8
+      Description: Sample Lambda Powertools Direct Lambda Resolver
+      Tags:
+        SOLUTION: LambdaPowertoolsPython
+
+ ###################
+  # IAM PERMISSIONS AND ROLES
+ ##################
+  AppSyncServiceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "appsync.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+  InvokeLambdaResolverPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: "DirectAppSyncLambda"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action: "lambda:invokeFunction"
+            Resource:
+              - !GetAtt BabySitterFunction.Arn
+      Roles:
+        - !Ref AppSyncServiceRole
+  RoleAppSyncCloudWatch:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - appsync.amazonaws.com
+
+ ###################
+  # GRAPHQL API
+ ##################
+
+  EventDrivenSAMApi:
+    Type: "AWS::AppSync::GraphQLApi"
+    Properties:
+      Name: EventDrivenSAMApi
+      AuthenticationType: "API_KEY"
+      AdditionalAuthenticationProviders:
+        - AuthenticationType: AMAZON_COGNITO_USER_POOLS
+          UserPoolConfig:
+            AwsRegion: !Ref AWS::Region
+            UserPoolId: !Ref CognitoUserPool
+      XrayEnabled: true
+      LogConfig:
+        CloudWatchLogsRoleArn: !GetAtt RoleAppSyncCloudWatch.Arn
+        ExcludeVerboseContent: FALSE
+        FieldLogLevel: ALL
+
+  EventDrivenSAMApiKey:
+    Type: AWS::AppSync::ApiKey
+    Properties:
+      ApiId: !GetAtt EventDrivenSAMApi.ApiId
+
+  BabySitterApiSchema:
+    Type: "AWS::AppSync::GraphQLSchema"
+    Properties:
+      ApiId: !GetAtt EventDrivenSAMApi.ApiId
+      DefinitionS3Location: 'graphql/schema.graphql'
+
+
     HelloWorldFunction:
         Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
         Properties:
