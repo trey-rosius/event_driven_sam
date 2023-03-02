@@ -43,16 +43,16 @@ Resources:
   ###################
   # FUNCTIONS
   ##################
-  BabySitterFunction:
+  EventDrivenFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     DependsOn:
       - LambdaLoggingPolicy
     Properties:
       CodeUri: event_driven_service/
       Handler: app.lambda_handler
-      Role: !GetAtt AddBabysitterRole.Arn
+      Role: !GetAtt AddEventDrivenLambdaRole.Arn
       Runtime: python3.8
-      Description: Sample Lambda Powertools Direct Lambda Resolver
+      Description: Direct Lambda Resolver
       Tags:
         SOLUTION: LambdaPowertoolsPython
 
@@ -84,6 +84,19 @@ Resources:
               - !GetAtt BabySitterFunction.Arn
       Roles:
         - !Ref AppSyncServiceRole
+
+  AddEventDrivenLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+            - "sts:AssumeRole"
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
   RoleAppSyncCloudWatch:
     Type: AWS::IAM::Role
     Properties:
@@ -103,10 +116,10 @@ Resources:
   # GRAPHQL API
  ##################
 
-  EventDrivenSAMApi:
+  EventDrivenApi:
     Type: "AWS::AppSync::GraphQLApi"
     Properties:
-      Name: EventDrivenSAMApi
+      Name: EventDrivenApi
       AuthenticationType: "API_KEY"
       AdditionalAuthenticationProviders:
         - AuthenticationType: AMAZON_COGNITO_USER_POOLS
@@ -119,70 +132,49 @@ Resources:
         ExcludeVerboseContent: FALSE
         FieldLogLevel: ALL
 
-  EventDrivenSAMApiKey:
+  EventDrivenApiKey:
     Type: AWS::AppSync::ApiKey
     Properties:
-      ApiId: !GetAtt EventDrivenSAMApi.ApiId
+      ApiId: !GetAtt EventDrivenApi.ApiId
 
-  BabySitterApiSchema:
+  EventDrivenApiSchema:
     Type: "AWS::AppSync::GraphQLSchema"
     Properties:
-      ApiId: !GetAtt EventDrivenSAMApi.ApiId
+      ApiId: !GetAtt EventDrivenApi.ApiId
       DefinitionS3Location: 'graphql/schema.graphql'
 
+  UserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: Id
+        - AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+  OrderTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: userId
+        - AttributeType: S
+        - AttributeName: orderId
+        - AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: orderId
+          KeyType: RANGE
 
-    HelloWorldFunction:
-        Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
-        Properties:
-            Handler: app.lambda_handler
-            CodeUri: event_driven_service
-            Description: Hello World function
-            Events:
-                HelloPath:
-                    Type: Api # More info about API Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-api.html
-                    Properties:
-                        Path: /hello
-                        Method: GET
-                HelloYou:
-                    Type: Api
-                    Properties:
-                        Path: /hello/{name}
-                        Method: GET
-            # Policies: # Example inline policy
-            #     - Version: "2012-10-17"
-            #     Statement:
-            #         - Effect: "Allow"
-            #         Action:
-            #             - "ssm:GetParameter"
-            #         Resource:
-            #             - "*"
-            Environment:
-                Variables:
-                    PARAM1: VALUE
-            Tags:
-                LambdaPowertools: python
 
-    # Sample policy to add additional permissions to your Lambda
-    # HelloWorldFunctionAdditionalPermission:
-    #     Type: "AWS::IAM::Policy"
-    #     Properties:
-    #         PolicyName: "root"
-    #         PolicyDocument:
-    #             Version: "2012-10-17"
-    #             Statement:
-    #                 -
-    #                     Effect: "Allow"
-    #                     Action: "ssm:GetParameters"
-    #                     Resource: "*"
-    #         Roles:
-    #             - !Ref HelloWorldFunctionRole # Sample policy to demonstrate Implicit IAM Role created with SAM
+
+
 
 Outputs:
-    HelloWorldApigwURL:
-      Description: "API Gateway endpoint URL for Prod environment for Hello World Function"
-      Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello"
+    EventDrivenApiUrl:
+      Description: "AppSync Url Endpoint"
+      Value: !GetAtt EventDrivenApi.Arn
 
-    HelloWorldFunction:
-      Description: "Hello World Lambda Function ARN"
-      Value: !GetAtt HelloWorldFunction.Arn
 
