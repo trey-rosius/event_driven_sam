@@ -12,7 +12,7 @@ Globals: # https://docs.aws.amazon.com/serverless-application-model/latest/devel
         # Embed Lambda Powertools as a shared Layer
         # See: https://awslabs.github.io/aws-lambda-powertools-python/latest/#lambda-layer
         Layers: # 
-            - !Sub arn:aws:lambda:${AWS::Region}:017000801446:layer:AWSLambdaPowertoolsPython:9
+            - !Sub arn:aws:lambda:${AWS::Region}:017000801446:layer:AWSLambdaPowertoolsPythonV2:21
         Environment:
             Variables:
                 # Powertools env vars: https://awslabs.github.io/aws-lambda-powertools-python/#environment-variables
