@@ -51,7 +51,7 @@ Resources:
       CodeUri: event_driven_service/
       Handler: app.lambda_handler
       Role: !GetAtt AddEventDrivenLambdaRole.Arn
-      Runtime: python3.8
+      Runtime: python3.9
       Description: Direct Lambda Resolver
       Tags:
         SOLUTION: LambdaPowertoolsPython
